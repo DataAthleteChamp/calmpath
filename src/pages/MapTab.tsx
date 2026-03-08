@@ -1,8 +1,11 @@
+import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Volume2, Camera, MapPin, HelpCircle, Check, Eye } from 'lucide-react';
+import { Volume2, Camera, MapPin, HelpCircle, Check, Eye, ZoomIn, ZoomOut, Locate } from 'lucide-react';
 import CphAirportMap from '@/components/CphAirportMap';
+import { useMapGestures } from '@/components/map/useMapGestures';
+import { WALK_TIMES } from '@/components/map/mapData';
 
 const VISUAL_HINTS: Record<string, string> = {
   entrance: '🔍 Look for the large glass doors with "Terminal 3" sign above',
@@ -15,13 +18,32 @@ const VISUAL_HINTS: Record<string, string> = {
 
 const MapTab = () => {
   const navigate = useNavigate();
-  const { checkpoints, currentCheckpointIndex, completeCheckpoint, journeyStarted, setJourneyStarted } = useApp();
-  
+  const { checkpoints, currentCheckpointIndex, completeCheckpoint, journeyStarted, setJourneyStarted, accessibility } = useApp();
+  const { viewBox, handlers, zoomIn, zoomOut, recenter, focusOnPoint } = useMapGestures();
+  const { reduceMotion } = accessibility;
+
   const currentCp = checkpoints[currentCheckpointIndex];
   const isComplete = currentCheckpointIndex >= checkpoints.length;
 
   const hintKey = currentCp?.id === 'gate' ? 'gate' : currentCp?.id;
   const visualHint = hintKey ? VISUAL_HINTS[hintKey] : '';
+
+  // Walk time ETA
+  const walkTime = currentCheckpointIndex < WALK_TIMES.length ? WALK_TIMES[currentCheckpointIndex] : 0;
+
+  // XP celebration float-up
+  const [showXP, setShowXP] = useState(false);
+  const prevCheckpointRef = useRef(currentCheckpointIndex);
+
+  useEffect(() => {
+    if (currentCheckpointIndex > prevCheckpointRef.current) {
+      setShowXP(true);
+      const t = setTimeout(() => setShowXP(false), 1300);
+      prevCheckpointRef.current = currentCheckpointIndex;
+      return () => clearTimeout(t);
+    }
+    prevCheckpointRef.current = currentCheckpointIndex;
+  }, [currentCheckpointIndex]);
 
   if (!journeyStarted && !isComplete) {
     return (
@@ -53,6 +75,11 @@ const MapTab = () => {
         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
           <span className="text-2xl">{currentCp?.emoji}</span>
           {currentCp?.name}
+          {walkTime > 0 && (
+            <span className="text-xs font-normal text-muted-foreground ml-1">
+              ~{walkTime} min walk
+            </span>
+          )}
         </h2>
         {visualHint && (
           <div className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-muted-foreground text-xs">
@@ -78,9 +105,51 @@ const MapTab = () => {
         ))}
       </div>
 
-      {/* Map — large */}
+      {/* Map — large with floating controls */}
       <div className="flex-1 relative min-h-[55vh]">
-        <CphAirportMap />
+        <CphAirportMap
+          viewBox={viewBox}
+          gestureHandlers={handlers}
+          focusOnPoint={focusOnPoint}
+        />
+
+        {/* Floating zoom controls — bottom-right */}
+        <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+          <button
+            onClick={zoomIn}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-card shadow-lg border border-border text-foreground hover:bg-muted transition-colors"
+            aria-label="Zoom in"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </button>
+          <button
+            onClick={zoomOut}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-card shadow-lg border border-border text-foreground hover:bg-muted transition-colors"
+            aria-label="Zoom out"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </button>
+          <button
+            onClick={recenter}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-card shadow-lg border border-border text-foreground hover:bg-muted transition-colors"
+            aria-label="Re-center map"
+          >
+            <Locate className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* +25 XP celebration */}
+        {showXP && (
+          <div
+            className={`absolute top-1/3 left-1/2 -translate-x-1/2 pointer-events-none ${
+              reduceMotion ? 'opacity-0' : 'float-xp-anim'
+            }`}
+          >
+            <span className="text-2xl font-bold text-primary drop-shadow-lg">
+              +25 XP ✨
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Bottom Actions */}
