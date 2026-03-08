@@ -80,7 +80,7 @@ const CphAirportMap = () => {
       <text x="200" y="548" textAnchor="middle" fontSize="10" fill="hsl(200 30% 35%)" fontWeight="700">ENTRANCE</text>
 
       {/* Busy area badge */}
-      <rect x="270" y: "415" width="80" height="22" rx="11" fill="hsl(35 90% 92%)" stroke="hsl(35 80% 70%)" strokeWidth="1" />
+      <rect x="270" y={415} width="80" height="22" rx="11" fill="hsl(35 90% 92%)" stroke="hsl(35 80% 70%)" strokeWidth="1" />
       <text x="310" y="430" textAnchor="middle" fontSize="8" fill="hsl(35 70% 40%)" fontWeight="600">⚠️ Busy area</text>
 
       {/* Future route (gray dashed) */}
