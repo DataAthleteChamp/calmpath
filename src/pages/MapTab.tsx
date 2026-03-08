@@ -1,8 +1,17 @@
 import { useApp } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Volume2, Camera, MapPin, HelpCircle, Check } from 'lucide-react';
+import { Volume2, Camera, MapPin, HelpCircle, Check, Eye } from 'lucide-react';
 import CphAirportMap from '@/components/CphAirportMap';
+
+const VISUAL_HINTS: Record<string, string> = {
+  entrance: '🔍 Look for the large glass doors with "Terminal 3" sign above',
+  checkin: '🔍 Look for the blue Check-in counters on your right',
+  bathroom: '🔍 Look for the WC sign on the left wall, past the info desk',
+  security: '🔍 Follow the overhead signs to the security lanes ahead',
+  snack: '🔍 The café is right after security — look for the Starbucks logo',
+  gate: '🔍 Follow signs along Pier A — your gate is on the left side',
+};
 
 const MapTab = () => {
   const navigate = useNavigate();
@@ -10,6 +19,9 @@ const MapTab = () => {
   
   const currentCp = checkpoints[currentCheckpointIndex];
   const isComplete = currentCheckpointIndex >= checkpoints.length;
+
+  const hintKey = currentCp?.id === 'gate' ? 'gate' : currentCp?.id;
+  const visualHint = hintKey ? VISUAL_HINTS[hintKey] : '';
 
   if (!journeyStarted && !isComplete) {
     return (
@@ -36,18 +48,23 @@ const MapTab = () => {
   return (
     <div className="flex flex-col h-full animate-fade-in-up">
       {/* Top: Current Objective */}
-      <div className="px-5 py-4 bg-card border-b">
-        <p className="text-xs font-medium text-primary uppercase tracking-wider mb-1">Next stop</p>
+      <div className="px-5 py-3 bg-card border-b">
+        <p className="text-xs font-medium text-primary uppercase tracking-wider mb-0.5">Next stop</p>
         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
           <span className="text-2xl">{currentCp?.emoji}</span>
           {currentCp?.name}
         </h2>
-        <p className="text-sm text-muted-foreground mt-0.5">{currentCp?.description}</p>
+        {visualHint && (
+          <div className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-muted-foreground text-xs">
+            <Eye className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span>{visualHint}</span>
+          </div>
+        )}
       </div>
 
       {/* Progress dots */}
-      <div className="flex items-center justify-center gap-2 py-3 bg-card/50">
-        {checkpoints.map((cp, i) => (
+      <div className="flex items-center justify-center gap-2 py-2.5 bg-card/50">
+        {checkpoints.map((cp) => (
           <div
             key={cp.id}
             className={`h-2.5 w-2.5 rounded-full transition-all ${
@@ -61,13 +78,13 @@ const MapTab = () => {
         ))}
       </div>
 
-      {/* Map */}
-      <div className="flex-1 relative">
+      {/* Map — large */}
+      <div className="flex-1 relative min-h-[55vh]">
         <CphAirportMap />
       </div>
 
       {/* Bottom Actions */}
-      <div className="px-5 py-4 bg-card border-t space-y-3">
+      <div className="px-5 py-3 bg-card border-t space-y-2.5">
         <div className="flex gap-2">
           <button className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-muted p-2.5 text-muted-foreground hover:bg-muted/80 transition-colors">
             <Volume2 className="h-4 w-4" />
