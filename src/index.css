@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -81,6 +83,22 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* High contrast overrides */
+  .high-contrast {
+    --foreground: 0 0% 0%;
+    --card-foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 20%;
+    --border: 0 0% 30%;
+    --input: 0 0% 30%;
+  }
+  .high-contrast.dark {
+    --foreground: 0 0% 100%;
+    --card-foreground: 0 0% 100%;
+    --muted-foreground: 0 0% 85%;
+    --border: 0 0% 60%;
+    --input: 0 0% 60%;
+  }
 }
 
 @layer base {
@@ -92,6 +110,39 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* Dyslexia-friendly font */
+.dyslexia-font,
+.dyslexia-font * {
+  font-family: 'Andika', sans-serif !important;
+}
+
+/* Reduce motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Large tap targets */
+.large-targets button,
+.large-targets [role="switch"],
+.large-targets a {
+  min-height: 52px;
+  min-width: 52px;
+}
+.large-targets .rounded-2xl {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* High contrast borders */
+.high-contrast .border,
+.high-contrast [class*="border"] {
+  border-width: 2px;
 }
 
 @layer utilities {

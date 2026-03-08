@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export type AvatarId = 'fox' | 'owl' | 'panda' | 'bunny' | 'cat' | 'turtle';
+export type DisabilityProfile = 'adhd' | 'autism' | 'dyslexia' | 'anxiety' | 'lowVision';
 
 export const AVATARS = [
   { id: 'fox' as AvatarId, emoji: '🦊', name: 'Fox' },
@@ -11,6 +12,14 @@ export const AVATARS = [
   { id: 'turtle' as AvatarId, emoji: '🐢', name: 'Turtle' },
 ];
 
+export const DISABILITY_OPTIONS = [
+  { id: 'adhd' as DisabilityProfile, emoji: '⚡', label: 'ADHD', description: 'Short next-step cues, minimal distractions' },
+  { id: 'autism' as DisabilityProfile, emoji: '🧩', label: 'Autism', description: 'Predictable sequence, transition warnings' },
+  { id: 'dyslexia' as DisabilityProfile, emoji: '📖', label: 'Dyslexia', description: 'Icon-first, low-text mode' },
+  { id: 'anxiety' as DisabilityProfile, emoji: '💚', label: 'Anxiety', description: 'Reassuring tone, fallback certainty' },
+  { id: 'lowVision' as DisabilityProfile, emoji: '👁️', label: 'Low Vision', description: 'Audio-first, high contrast' },
+];
+
 export interface Preferences {
   avoidCrowds: boolean;
   simplerDirections: boolean;
@@ -18,6 +27,16 @@ export interface Preferences {
   voiceGuidance: boolean;
   conciseMode: boolean;
   avoidNoise: boolean;
+}
+
+export interface AccessibilitySettings {
+  fontSize: 'small' | 'medium' | 'large' | 'xl';
+  darkMode: boolean;
+  highContrast: boolean;
+  dyslexiaFont: boolean;
+  readAloud: boolean;
+  reduceMotion: boolean;
+  largeTapTargets: boolean;
 }
 
 export interface Checkpoint {
@@ -37,6 +56,16 @@ const defaultPreferences: Preferences = {
   avoidNoise: true,
 };
 
+const defaultAccessibility: AccessibilitySettings = {
+  fontSize: 'medium',
+  darkMode: false,
+  highContrast: false,
+  dyslexiaFont: false,
+  readAloud: false,
+  reduceMotion: false,
+  largeTapTargets: false,
+};
+
 const initialCheckpoints: Checkpoint[] = [
   { id: 'entrance', name: 'Entrance', emoji: '🚪', description: 'Terminal 3 main entrance', status: 'active' },
   { id: 'checkin', name: 'Check-in', emoji: '🎫', description: 'Check-in counter B', status: 'locked' },
@@ -46,11 +75,26 @@ const initialCheckpoints: Checkpoint[] = [
   { id: 'gate', name: 'Gate A12', emoji: '✈️', description: 'Gate A12 — Boarding', status: 'locked' },
 ];
 
+/** Auto-enable preferences based on selected disability profiles */
+export function getPreferencesForProfiles(profiles: DisabilityProfile[]): Partial<Preferences> {
+  const p: Partial<Preferences> = {};
+  if (profiles.includes('adhd')) { p.conciseMode = true; p.simplerDirections = true; }
+  if (profiles.includes('autism')) { p.avoidCrowds = true; p.avoidNoise = true; }
+  if (profiles.includes('dyslexia')) { p.simplerDirections = true; p.conciseMode = true; }
+  if (profiles.includes('anxiety')) { p.extraReassurance = true; p.avoidCrowds = true; }
+  if (profiles.includes('lowVision')) { p.voiceGuidance = true; }
+  return p;
+}
+
 interface AppState {
   avatar: AvatarId | null;
   setAvatar: (a: AvatarId) => void;
+  disabilityProfiles: DisabilityProfile[];
+  setDisabilityProfiles: (p: DisabilityProfile[]) => void;
   preferences: Preferences;
   setPreferences: (p: Preferences) => void;
+  accessibility: AccessibilitySettings;
+  setAccessibility: (a: AccessibilitySettings) => void;
   setupComplete: boolean;
   setSetupComplete: (v: boolean) => void;
   xp: number;
@@ -82,7 +126,9 @@ export const useApp = () => {
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [avatar, setAvatar] = useState<AvatarId | null>(null);
+  const [disabilityProfiles, setDisabilityProfiles] = useState<DisabilityProfile[]>([]);
   const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
+  const [accessibility, setAccessibility] = useState<AccessibilitySettings>(defaultAccessibility);
   const [setupComplete, setSetupComplete] = useState(false);
   const [xp, setXp] = useState(0);
   const [checkpoints, setCheckpoints] = useState<Checkpoint[]>(initialCheckpoints);
@@ -93,6 +139,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [showSupportCard, setShowSupportCard] = useState(false);
   const [journeyStarted, setJourneyStarted] = useState(false);
   const [activeTab, setActiveTab] = useState('relax');
+
+  // Apply accessibility classes to document
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    // Font size
+    const scaleMap = { small: '14px', medium: '16px', large: '18px', xl: '22px' };
+    html.style.fontSize = scaleMap[accessibility.fontSize];
+
+    // Dark mode
+    html.classList.toggle('dark', accessibility.darkMode);
+
+    // High contrast
+    html.classList.toggle('high-contrast', accessibility.highContrast);
+
+    // Dyslexia font
+    body.classList.toggle('dyslexia-font', accessibility.dyslexiaFont);
+
+    // Reduce motion
+    html.classList.toggle('reduce-motion', accessibility.reduceMotion);
+
+    // Large tap targets
+    html.classList.toggle('large-targets', accessibility.largeTapTargets);
+  }, [accessibility]);
 
   const addXp = (n: number) => setXp(prev => prev + n);
   const level = Math.floor(xp / 100) + 1;
@@ -110,11 +181,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setCurrentCheckpointIndex(prev => prev + 1);
     addXp(25);
 
-    // After bathroom → stress modal before security
     if (idx === 2) {
       setTimeout(() => setShowStressModal(true), 800);
     }
-    // After snack → gate change
     if (idx === 4) {
       setTimeout(() => {
         setGateChanged(true);
@@ -131,7 +200,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AppContext.Provider value={{
       avatar, setAvatar,
+      disabilityProfiles, setDisabilityProfiles,
       preferences, setPreferences,
+      accessibility, setAccessibility,
       setupComplete, setSetupComplete,
       xp, addXp, level,
       checkpoints, currentCheckpointIndex, completeCheckpoint,
