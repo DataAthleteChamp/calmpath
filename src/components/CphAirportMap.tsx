@@ -69,7 +69,7 @@ const CphAirportMap = () => {
       {/* Pier A */}
       <path d="M 140 350 L 125 280 L 100 180 L 65 40 L 40 40 L 70 180 L 90 280 L 105 350 Z"
         fill="hsl(210 25% 90%)" stroke="hsl(210 20% 78%)" strokeWidth="2" />
-      <text x="55" y: 30" textAnchor="middle" fontSize="10" fill="hsl(210 20% 55%)" fontWeight="700" letterSpacing="1">PIER A</text>
+      <text x="55" y={30} textAnchor="middle" fontSize="10" fill="hsl(210 20% 55%)" fontWeight="700" letterSpacing="1">PIER A</text>
 
       {/* Security band */}
       <rect x="60" y="300" width="280" height="24" rx="6" fill="hsl(210 30% 85%)" stroke="hsl(210 20% 75%)" strokeWidth="1.5" />
