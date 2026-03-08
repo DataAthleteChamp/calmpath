@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { toast } from 'sonner';
 
 export type AvatarId = 'fox' | 'owl' | 'panda' | 'bunny' | 'cat' | 'turtle';
 export type DisabilityProfile = 'adhd' | 'autism' | 'dyslexia' | 'anxiety' | 'lowVision';
@@ -18,6 +19,22 @@ export const DISABILITY_OPTIONS = [
   { id: 'dyslexia' as DisabilityProfile, emoji: '📖', label: 'Dyslexia', description: 'Icon-first, low-text mode' },
   { id: 'anxiety' as DisabilityProfile, emoji: '💚', label: 'Anxiety', description: 'Reassuring tone, fallback certainty' },
   { id: 'lowVision' as DisabilityProfile, emoji: '👁️', label: 'Low Vision', description: 'Audio-first, high contrast' },
+];
+
+export interface Badge {
+  id: string;
+  emoji: string;
+  name: string;
+  description: string;
+}
+
+export const BADGES: Badge[] = [
+  { id: 'firstStep', emoji: '🏅', name: 'First Step', description: 'Complete first checkpoint' },
+  { id: 'securityPro', emoji: '🛡️', name: 'Security Pro', description: 'Pass through security' },
+  { id: 'zenMaster', emoji: '🧘', name: 'Zen Master', description: 'Use breathing exercise' },
+  { id: 'halfway', emoji: '⭐', name: 'Halfway There', description: 'Complete 3 checkpoints' },
+  { id: 'journeyComplete', emoji: '🏆', name: 'Journey Complete', description: 'Finish all 6 checkpoints' },
+  { id: 'colorChamp', emoji: '🎮', name: 'Color Champ', description: 'Score 5+ in color match' },
 ];
 
 export interface Preferences {
@@ -86,6 +103,19 @@ export function getPreferencesForProfiles(profiles: DisabilityProfile[]): Partia
   return p;
 }
 
+/** Haptic feedback utility — works on Android Chrome, safe no-op elsewhere */
+export const haptic = (ms = 50) => { try { navigator.vibrate?.(ms); } catch {} };
+
+const STORAGE_KEY = 'calmpath-state';
+
+function loadPersistedState(): Record<string, unknown> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return {};
+}
+
 interface AppState {
   avatar: AvatarId | null;
   setAvatar: (a: AvatarId) => void;
@@ -114,6 +144,10 @@ interface AppState {
   setJourneyStarted: (v: boolean) => void;
   activeTab: string;
   setActiveTab: (t: string) => void;
+  mood: number | null;
+  setMood: (m: number | null) => void;
+  unlockedBadges: string[];
+  unlockBadge: (id: string) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -125,20 +159,34 @@ export const useApp = () => {
 };
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [avatar, setAvatar] = useState<AvatarId | null>(null);
-  const [disabilityProfiles, setDisabilityProfiles] = useState<DisabilityProfile[]>([]);
-  const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
-  const [accessibility, setAccessibility] = useState<AccessibilitySettings>(defaultAccessibility);
-  const [setupComplete, setSetupComplete] = useState(false);
-  const [xp, setXp] = useState(0);
-  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>(initialCheckpoints);
-  const [currentCheckpointIndex, setCurrentCheckpointIndex] = useState(0);
-  const [gateChanged, setGateChanged] = useState(false);
+  const saved = loadPersistedState();
+
+  const [avatar, setAvatar] = useState<AvatarId | null>((saved.avatar as AvatarId) ?? null);
+  const [disabilityProfiles, setDisabilityProfiles] = useState<DisabilityProfile[]>((saved.disabilityProfiles as DisabilityProfile[]) ?? []);
+  const [preferences, setPreferences] = useState<Preferences>((saved.preferences as Preferences) ?? defaultPreferences);
+  const [accessibility, setAccessibility] = useState<AccessibilitySettings>((saved.accessibility as AccessibilitySettings) ?? defaultAccessibility);
+  const [setupComplete, setSetupComplete] = useState((saved.setupComplete as boolean) ?? false);
+  const [xp, setXp] = useState((saved.xp as number) ?? 0);
+  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>((saved.checkpoints as Checkpoint[]) ?? initialCheckpoints);
+  const [currentCheckpointIndex, setCurrentCheckpointIndex] = useState((saved.currentCheckpointIndex as number) ?? 0);
+  const [gateChanged, setGateChanged] = useState((saved.gateChanged as boolean) ?? false);
   const [showStressModal, setShowStressModal] = useState(false);
   const [showGateChangeModal, setShowGateChangeModal] = useState(false);
   const [showSupportCard, setShowSupportCard] = useState(false);
-  const [journeyStarted, setJourneyStarted] = useState(false);
+  const [journeyStarted, setJourneyStarted] = useState((saved.journeyStarted as boolean) ?? false);
   const [activeTab, setActiveTab] = useState('relax');
+  const [mood, setMood] = useState<number | null>((saved.mood as number) ?? null);
+  const [unlockedBadges, setUnlockedBadges] = useState<string[]>((saved.unlockedBadges as string[]) ?? []);
+
+  // Persist state to localStorage
+  useEffect(() => {
+    const state = {
+      avatar, disabilityProfiles, preferences, accessibility,
+      setupComplete, xp, checkpoints, currentCheckpointIndex,
+      gateChanged, journeyStarted, unlockedBadges, mood,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [avatar, disabilityProfiles, preferences, accessibility, setupComplete, xp, checkpoints, currentCheckpointIndex, gateChanged, journeyStarted, unlockedBadges, mood]);
 
   // Apply accessibility classes to document
   useEffect(() => {
@@ -168,6 +216,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addXp = (n: number) => setXp(prev => prev + n);
   const level = Math.floor(xp / 100) + 1;
 
+  const unlockBadge = useCallback((badgeId: string) => {
+    setUnlockedBadges(prev => {
+      if (prev.includes(badgeId)) return prev;
+      const badge = BADGES.find(b => b.id === badgeId);
+      if (badge) {
+        toast(`${badge.emoji} Badge unlocked: ${badge.name}!`);
+        haptic(100);
+      }
+      return [...prev, badgeId];
+    });
+  }, []);
+
   const completeCheckpoint = () => {
     const idx = currentCheckpointIndex;
     setCheckpoints(prev => {
@@ -180,6 +240,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
     setCurrentCheckpointIndex(prev => prev + 1);
     addXp(25);
+    toast('✅ Check-in complete! +25 XP');
+    haptic();
+
+    // Badge checks
+    if (idx === 0) unlockBadge('firstStep');
+    if (idx === 2) unlockBadge('halfway');
+    if (idx === 3) unlockBadge('securityPro');
+    if (idx === 5) {
+      unlockBadge('journeyComplete');
+      addXp(100);
+      setTimeout(() => toast('🎉 Journey Complete! +100 Bonus XP!'), 600);
+    }
 
     if (idx === 2) {
       setTimeout(() => setShowStressModal(true), 800);
@@ -193,6 +265,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           next[5] = { ...next[5], name: 'Gate A18', description: 'Gate A18 — Updated' };
           return next;
         });
+        toast('⚠️ Gate changed to A18');
       }, 800);
     }
   };
@@ -212,6 +285,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       showSupportCard, setShowSupportCard,
       journeyStarted, setJourneyStarted,
       activeTab, setActiveTab,
+      mood, setMood,
+      unlockedBadges, unlockBadge,
     }}>
       {children}
     </AppContext.Provider>

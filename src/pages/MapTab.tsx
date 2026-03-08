@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useReadAloud } from '@/hooks/useReadAloud';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Volume2, Camera, MapPin, HelpCircle, Check, Eye, ZoomIn, ZoomOut, Locate } from 'lucide-react';
@@ -16,10 +17,13 @@ const VISUAL_HINTS: Record<string, string> = {
   gate: '🔍 Follow signs along Pier A — your gate is on the left side',
 };
 
+const CONFETTI_EMOJIS = ['🎉', '⭐', '✨', '🎊', '🏆', '💫', '🎈', '🌟'];
+
 const MapTab = () => {
   const navigate = useNavigate();
   const { checkpoints, currentCheckpointIndex, completeCheckpoint, journeyStarted, setJourneyStarted, accessibility } = useApp();
   const { viewBox, handlers, zoomIn, zoomOut, recenter, focusOnPoint } = useMapGestures();
+  const { speak } = useReadAloud();
   const { reduceMotion } = accessibility;
 
   const currentCp = checkpoints[currentCheckpointIndex];
@@ -35,15 +39,32 @@ const MapTab = () => {
   const [showXP, setShowXP] = useState(false);
   const prevCheckpointRef = useRef(currentCheckpointIndex);
 
+  // Auto-speak on checkpoint change
   useEffect(() => {
     if (currentCheckpointIndex > prevCheckpointRef.current) {
       setShowXP(true);
       const t = setTimeout(() => setShowXP(false), 1300);
       prevCheckpointRef.current = currentCheckpointIndex;
+
+      // Speak new checkpoint + visual hint
+      const cp = checkpoints[currentCheckpointIndex];
+      if (cp) {
+        const hKey = cp.id === 'gate' ? 'gate' : cp.id;
+        const hint = hKey ? VISUAL_HINTS[hKey] : '';
+        speak(`Next stop: ${cp.name}. ${hint}`);
+      }
+
       return () => clearTimeout(t);
     }
     prevCheckpointRef.current = currentCheckpointIndex;
-  }, [currentCheckpointIndex]);
+  }, [currentCheckpointIndex, checkpoints, speak]);
+
+  // Voice button handler
+  const handleVoice = () => {
+    if (visualHint) {
+      speak(visualHint);
+    }
+  };
 
   if (!journeyStarted && !isComplete) {
     return (
@@ -59,7 +80,25 @@ const MapTab = () => {
 
   if (isComplete) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] px-6 text-center animate-fade-in-up">
+      <div className="flex flex-col items-center justify-center h-[70vh] px-6 text-center animate-fade-in-up relative overflow-hidden">
+        {/* Confetti celebration */}
+        {!reduceMotion && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {CONFETTI_EMOJIS.map((emoji, i) => (
+              <span
+                key={i}
+                className="absolute text-2xl animate-confetti"
+                style={{
+                  left: `${8 + i * 12}%`,
+                  top: '40%',
+                  animationDelay: `${i * 0.2}s`,
+                }}
+              >
+                {emoji}
+              </span>
+            ))}
+          </div>
+        )}
         <span className="text-7xl mb-6">✈️</span>
         <h2 className="text-2xl font-bold mb-2 text-foreground">Destination reached!</h2>
         <p className="text-muted-foreground">You're at your gate. Have a calm flight!</p>
@@ -155,7 +194,10 @@ const MapTab = () => {
       {/* Bottom Actions */}
       <div className="px-5 py-3 bg-card border-t space-y-2.5">
         <div className="flex gap-2">
-          <button className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-muted p-2.5 text-muted-foreground hover:bg-muted/80 transition-colors">
+          <button
+            onClick={handleVoice}
+            className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-muted p-2.5 text-muted-foreground hover:bg-muted/80 transition-colors"
+          >
             <Volume2 className="h-4 w-4" />
             <span className="text-[10px] font-medium">Voice</span>
           </button>
