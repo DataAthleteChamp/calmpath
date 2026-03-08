@@ -28,27 +28,27 @@ const SplashScreen = () => {
           <Button
             size="lg"
             className="w-full rounded-2xl py-7 text-lg font-semibold shadow-md shadow-primary/20"
-            onClick={() => navigate('/setup')}
-          >
+            onClick={() => navigate('/setup')}>
+            
             Start Demo
           </Button>
           <Button
             variant="outline"
             size="lg"
             className="w-full rounded-2xl py-7 text-lg"
-            onClick={() => navigate('/setup')}
-          >
+            onClick={() => navigate('/setup')}>
+            
             Quick Setup
           </Button>
         </div>
 
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground pt-2">
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground pt-2">Demo for Disability Tech Denmark
           <MapPin className="h-3.5 w-3.5" />
           Demo for Copenhagen Airport
         </p>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default SplashScreen;
