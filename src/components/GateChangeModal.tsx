@@ -1,9 +1,17 @@
+import { useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useReadAloud } from '@/hooks/useReadAloud';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Clock, ShieldCheck } from 'lucide-react';
 
 const GateChangeModal = () => {
   const { setShowGateChangeModal } = useApp();
+  const { speak } = useReadAloud();
+
+  // Speak the gate change on mount
+  useEffect(() => {
+    speak('Gate changed from A12 to A18. This adds about 4 minutes. Your route has been updated.');
+  }, [speak]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in">

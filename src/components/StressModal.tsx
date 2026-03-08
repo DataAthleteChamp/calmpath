@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useReadAloud } from '@/hooks/useReadAloud';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Wind, MapPin, HelpCircle } from 'lucide-react';
@@ -6,6 +8,12 @@ import { AlertTriangle, Wind, MapPin, HelpCircle } from 'lucide-react';
 const StressModal = () => {
   const navigate = useNavigate();
   const { setShowStressModal, setShowSupportCard } = useApp();
+  const { speak } = useReadAloud();
+
+  // Speak the warning on mount
+  useEffect(() => {
+    speak('Heads up: busy area ahead. Security can be crowded and noisy. Take a moment to breathe.');
+  }, [speak]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm animate-in fade-in">

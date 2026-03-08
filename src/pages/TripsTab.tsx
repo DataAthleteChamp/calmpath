@@ -3,8 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plane, Check, Lock, ChevronRight, MapPin } from 'lucide-react';
 
+const CONFETTI_EMOJIS = ['🎉', '⭐', '✨', '🎊', '🏆', '💫', '🎈', '🌟', '🥳', '🎆'];
+
 const TripsTab = () => {
-  const { checkpoints, currentCheckpointIndex, journeyStarted, setJourneyStarted, setActiveTab, gateChanged } = useApp();
+  const { checkpoints, currentCheckpointIndex, journeyStarted, setJourneyStarted, setActiveTab, gateChanged, accessibility } = useApp();
+  const { reduceMotion } = accessibility;
 
   const handleStartNavigation = () => {
     setJourneyStarted(true);
@@ -89,10 +92,29 @@ const TripsTab = () => {
       )}
 
       {currentCheckpointIndex >= checkpoints.length && (
-        <div className="text-center py-8">
+        <div className="text-center py-8 relative overflow-hidden">
+          {/* Confetti celebration */}
+          {!reduceMotion && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {CONFETTI_EMOJIS.map((emoji, i) => (
+                <span
+                  key={i}
+                  className="absolute text-xl confetti-anim"
+                  style={{
+                    left: `${5 + i * 10}%`,
+                    top: '30%',
+                    animationDelay: `${i * 0.15}s`,
+                  }}
+                >
+                  {emoji}
+                </span>
+              ))}
+            </div>
+          )}
           <span className="text-5xl mb-4 block">🎉</span>
           <h3 className="text-xl font-bold text-foreground mb-2">Journey complete!</h3>
-          <p className="text-muted-foreground">You made it. Well done!</p>
+          <p className="text-muted-foreground mb-1">You made it. Well done!</p>
+          <p className="text-sm text-primary font-medium">+100 Bonus XP earned!</p>
         </div>
       )}
     </div>

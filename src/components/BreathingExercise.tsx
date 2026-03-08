@@ -1,15 +1,20 @@
 import { X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { toast } from 'sonner';
+import { haptic } from '@/context/AppContext';
 
 interface Props {
   onClose: () => void;
 }
 
 const BreathingExercise = ({ onClose }: Props) => {
-  const { addXp } = useApp();
+  const { addXp, unlockBadge } = useApp();
 
   const handleClose = () => {
     addXp(10);
+    toast('🧘 +10 XP — nice breathing!');
+    haptic();
+    unlockBadge('zenMaster');
     onClose();
   };
 

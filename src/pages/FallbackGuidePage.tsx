@@ -16,7 +16,7 @@ const FallbackGuidePage = () => {
           </Button>
           <h1 className="text-xl font-bold text-foreground">Fallback Guide</h1>
         </div>
-        <Button variant="outline" size="sm" className="rounded-xl gap-2">
+        <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => window.print()}>
           <Printer className="h-3.5 w-3.5" /> Print
         </Button>
       </div>
