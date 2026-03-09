@@ -1,12 +1,19 @@
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plane, Check, Lock, ChevronRight, MapPin } from 'lucide-react';
+import { Plane, Check, Lock, ChevronRight, Clock } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 const CONFETTI_EMOJIS = ['🎉', '⭐', '✨', '🎊', '🏆', '💫', '🎈', '🌟', '🥳', '🎆'];
 
+function boardingBadgeColor(min: number) {
+  if (min > 30) return 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300';
+  if (min > 15) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+  return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
+}
+
 const TripsTab = () => {
-  const { checkpoints, currentCheckpointIndex, journeyStarted, setJourneyStarted, setActiveTab, gateChanged, accessibility } = useApp();
+  const { checkpoints, currentCheckpointIndex, journeyStarted, setJourneyStarted, setActiveTab, gateChanged, accessibility, flightInfo, boardingMinutes, language } = useApp();
   const { reduceMotion } = accessibility;
 
   const handleStartNavigation = () => {
@@ -16,29 +23,31 @@ const TripsTab = () => {
 
   return (
     <div className="px-6 py-6 animate-fade-in-up">
-      {/* Trip Header */}
+      {/* Flight Card */}
       <Card className="mb-6 border-0 shadow-md bg-gradient-to-br from-primary/5 to-accent/5">
         <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Plane className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <p className="font-bold text-foreground">Copenhagen Airport</p>
+            <div className="flex-1">
+              <p className="font-bold text-foreground">{flightInfo.airline} {flightInfo.flightNumber} → {flightInfo.destination}</p>
               <p className="text-sm text-muted-foreground">
-                {gateChanged ? 'Gate A18' : 'Gate A12'} · Terminal 3
+                Gate {flightInfo.gate} · Terminal {flightInfo.terminal}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5" />
-            <span>CPH · Kastrup</span>
+          <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${boardingBadgeColor(boardingMinutes)}`}>
+              <Clock className="h-3 w-3" />
+              {t('trips.boarding', language)} {boardingMinutes} {t('trips.min', language)}
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Journey Steps */}
-      <h3 className="font-semibold text-foreground mb-4">Your journey</h3>
+      <h3 className="font-semibold text-foreground mb-4">{t('trips.journey', language)}</h3>
       <div className="space-y-2 mb-8">
         {checkpoints.map((cp, i) => (
           <div
@@ -86,7 +95,7 @@ const TripsTab = () => {
           className="w-full rounded-2xl py-7 text-base font-semibold shadow-md shadow-primary/20"
           onClick={handleStartNavigation}
         >
-          {journeyStarted ? 'Continue Navigation' : 'Start Navigation'}
+          {journeyStarted ? t('trips.continue', language) : t('trips.start', language)}
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       )}
@@ -112,9 +121,9 @@ const TripsTab = () => {
             </div>
           )}
           <span className="text-5xl mb-4 block">🎉</span>
-          <h3 className="text-xl font-bold text-foreground mb-2">Journey complete!</h3>
-          <p className="text-muted-foreground mb-1">You made it. Well done!</p>
-          <p className="text-sm text-primary font-medium">+100 Bonus XP earned!</p>
+          <h3 className="text-xl font-bold text-foreground mb-2">{t('trips.complete.title', language)}</h3>
+          <p className="text-muted-foreground mb-1">{t('trips.complete.subtitle', language)}</p>
+          <p className="text-sm text-primary font-medium">{t('trips.complete.bonus', language)}</p>
         </div>
       )}
     </div>

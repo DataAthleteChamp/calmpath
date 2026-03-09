@@ -1,37 +1,56 @@
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, MapPin, HelpCircle, BatteryCharging, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 const PLACES = [
   {
+    icon: '🙏',
+    name: 'CPH Chapel',
+    location: 'Landside, near check-in',
+    distance: '4 min walk',
+    description: 'Quiet interfaith space, open to all',
+    color: 'bg-purple-100 dark:bg-purple-900/30',
+  },
+  {
     icon: '🤫',
-    name: 'Quiet Lounge',
-    location: 'Pier A, near Gate A15',
-    distance: '2 min walk',
-    description: 'Low noise, comfortable seating, dimmed lights',
+    name: 'Quiet Zone',
+    location: 'Pier C, Gate C32 area',
+    distance: '6 min walk',
+    description: 'Low-noise seating, no announcements',
     color: 'bg-accent/10',
   },
   {
+    icon: '🛋️',
+    name: 'CPH Relax Lounge',
+    location: 'Pier A, near Gate A15',
+    distance: '2 min walk',
+    description: 'Soft seating, dimmed lighting',
+    color: 'bg-blue-100 dark:bg-blue-900/30',
+  },
+  {
     icon: 'ℹ️',
-    name: 'Help Desk',
+    name: 'Service Center',
     location: 'Main Terminal, center',
     distance: '3 min walk',
-    description: 'Staff assistance, accessibility support',
+    description: 'Staff help, accessibility assistance',
     color: 'bg-primary/10',
   },
   {
     icon: '🔌',
-    name: 'Charging Point',
-    location: 'Pier A, near Gate A12',
-    distance: '1 min walk',
-    description: 'Free charging stations, seating area',
+    name: 'Charging Lounge',
+    location: 'Pier A, near Gate A10',
+    distance: '3 min walk',
+    description: 'Free charging, quiet corner',
     color: 'bg-warning/10',
   },
 ];
 
 const QuietPlacePage = () => {
   const navigate = useNavigate();
+  const { language } = useApp();
 
   return (
     <div className="min-h-[100dvh] bg-background px-6 py-6">
@@ -44,11 +63,11 @@ const QuietPlacePage = () => {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-bold text-foreground">Nearby support</h1>
+        <h1 className="text-xl font-bold text-foreground">{t('quiet.title', language)}</h1>
       </div>
 
       <p className="text-muted-foreground mb-6 leading-relaxed">
-        You're doing great. Here are some calm spots nearby if you need a break.
+        {t('quiet.intro', language)}
       </p>
 
       <div className="space-y-3">
@@ -73,10 +92,10 @@ const QuietPlacePage = () => {
       </div>
 
       <div className="mt-8 rounded-2xl bg-secondary/50 p-5 text-center">
-        <p className="text-sm text-foreground font-medium mb-1">Need help right now?</p>
-        <p className="text-xs text-muted-foreground mb-3">Show this to any staff member</p>
+        <p className="text-sm text-foreground font-medium mb-1">{t('quiet.helpNow', language)}</p>
+        <p className="text-xs text-muted-foreground mb-3">{t('quiet.showStaff', language)}</p>
         <Button variant="outline" className="rounded-xl" onClick={() => navigate('/support-card')}>
-          Show Support Card
+          {t('quiet.showCard', language)}
         </Button>
       </div>
     </div>

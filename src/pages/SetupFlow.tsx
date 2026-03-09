@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useApp, AVATARS, AvatarId, DISABILITY_OPTIONS, DisabilityProfile, Preferences, getPreferencesForProfiles } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Plane } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 const PREFS = [
   { key: 'avoidCrowds' as keyof Preferences, label: 'Avoid crowds', icon: '👥' },
@@ -18,7 +19,7 @@ const TOTAL_STEPS = 4;
 
 const SetupFlow = () => {
   const navigate = useNavigate();
-  const { avatar, setAvatar, preferences, setPreferences, setSetupComplete, disabilityProfiles, setDisabilityProfiles } = useApp();
+  const { avatar, setAvatar, preferences, setPreferences, setSetupComplete, disabilityProfiles, setDisabilityProfiles, language } = useApp();
   const [step, setStep] = useState(0);
 
   const toggleProfile = (id: DisabilityProfile) => {
@@ -53,8 +54,8 @@ const SetupFlow = () => {
       {/* Step 0: Avatar */}
       {step === 0 && (
         <div className="flex-1 flex flex-col animate-fade-in-up">
-          <h2 className="text-2xl font-bold text-center mb-1">Choose your companion</h2>
-          <p className="text-muted-foreground text-center mb-8">They'll guide you through the airport</p>
+          <h2 className="text-2xl font-bold text-center mb-1">{t('setup.companion.title', language)}</h2>
+          <p className="text-muted-foreground text-center mb-8">{t('setup.companion.subtitle', language)}</p>
 
           <div className="grid grid-cols-3 gap-3 mb-8">
             {AVATARS.map(a => (
@@ -76,7 +77,7 @@ const SetupFlow = () => {
 
           <div className="mt-auto">
             <Button size="lg" className="w-full rounded-2xl py-7 text-base" disabled={!avatar} onClick={() => setStep(1)}>
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
+              {t('setup.continue', language)} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -85,8 +86,8 @@ const SetupFlow = () => {
       {/* Step 1: Disability Profile */}
       {step === 1 && (
         <div className="flex-1 flex flex-col animate-fade-in-up">
-          <h2 className="text-2xl font-bold text-center mb-1">Tell us about you</h2>
-          <p className="text-muted-foreground text-center mb-6">Select all that apply — we'll adjust your experience</p>
+          <h2 className="text-2xl font-bold text-center mb-1">{t('setup.profile.title', language)}</h2>
+          <p className="text-muted-foreground text-center mb-6">{t('setup.profile.subtitle', language)}</p>
 
           <div className="space-y-3 mb-6">
             {DISABILITY_OPTIONS.map(opt => {
@@ -121,7 +122,7 @@ const SetupFlow = () => {
             onClick={() => setStep(2)}
             className="text-sm text-muted-foreground underline underline-offset-4 mb-4 hover:text-foreground transition-colors"
           >
-            Prefer not to say
+            {t('setup.profile.skip', language)}
           </button>
 
           <div className="mt-auto flex gap-3">
@@ -129,7 +130,7 @@ const SetupFlow = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <Button size="lg" className="flex-1 rounded-2xl py-7 text-base" onClick={() => setStep(2)}>
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
+              {t('setup.continue', language)} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -138,8 +139,8 @@ const SetupFlow = () => {
       {/* Step 2: Preferences */}
       {step === 2 && (
         <div className="flex-1 flex flex-col animate-fade-in-up">
-          <h2 className="text-2xl font-bold text-center mb-1">Your preferences</h2>
-          <p className="text-muted-foreground text-center mb-6">We'll customize your experience</p>
+          <h2 className="text-2xl font-bold text-center mb-1">{t('setup.prefs.title', language)}</h2>
+          <p className="text-muted-foreground text-center mb-6">{t('setup.prefs.subtitle', language)}</p>
 
           <div className="space-y-3 mb-8">
             {PREFS.map(p => (
@@ -161,7 +162,7 @@ const SetupFlow = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <Button size="lg" className="flex-1 rounded-2xl py-7 text-base" onClick={() => setStep(3)}>
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
+              {t('setup.continue', language)} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -174,14 +175,18 @@ const SetupFlow = () => {
             {AVATARS.find(a => a.id === avatar)?.emoji}
           </div>
           <div className="rounded-full bg-success/10 px-4 py-1.5 mb-4">
-            <span className="text-sm font-medium text-success">✓ Profile ready</span>
+            <span className="text-sm font-medium text-success">✓ {t('setup.ready.badge', language)}</span>
           </div>
-          <h2 className="text-2xl font-bold mb-2">Your calm profile is ready</h2>
-          <p className="text-muted-foreground mb-8 leading-relaxed">
-            Your companion is ready to guide you<br />through Copenhagen Airport
+          <h2 className="text-2xl font-bold mb-2">{t('setup.ready.title', language)}</h2>
+          <p className="text-muted-foreground mb-3 leading-relaxed">
+            {t('setup.ready.subtitle', language)}
           </p>
+          <div className="flex items-center gap-2 rounded-xl bg-primary/5 border border-primary/20 px-4 py-2.5 mb-8">
+            <Plane className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">{t('setup.ready.flight', language)}</span>
+          </div>
           <Button size="lg" className="w-full max-w-xs rounded-2xl py-7 text-lg font-semibold" onClick={handleComplete}>
-            <Check className="mr-2 h-5 w-5" /> Let's go
+            <Check className="mr-2 h-5 w-5" /> {t('setup.ready.go', language)}
           </Button>
         </div>
       )}

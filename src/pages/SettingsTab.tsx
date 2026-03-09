@@ -3,15 +3,18 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { FileText, MapPin, HelpCircle, Sun, Moon, Eye, Type, Volume2, Minimize2, Pointer } from 'lucide-react';
+import { FileText, MapPin, HelpCircle, Sun, Moon, Eye, Type, Volume2, Minimize2, Pointer, RotateCcw, Share2 } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
-const PREFS = [
-  { key: 'avoidCrowds' as keyof Preferences, label: 'Avoid crowds', icon: '👥' },
-  { key: 'simplerDirections' as keyof Preferences, label: 'Simpler directions', icon: '🧭' },
-  { key: 'extraReassurance' as keyof Preferences, label: 'Extra reassurance', icon: '💚' },
-  { key: 'voiceGuidance' as keyof Preferences, label: 'Voice guidance', icon: '🔊' },
-  { key: 'conciseMode' as keyof Preferences, label: 'Concise mode', icon: '📝' },
-  { key: 'avoidNoise' as keyof Preferences, label: 'Avoid noisy areas', icon: '🔇' },
+const DEMO_URL = 'https://calmpath.vercel.app';
+
+const PREFS_KEYS: { key: keyof Preferences; tKey: string; icon: string }[] = [
+  { key: 'avoidCrowds', tKey: 'pref.avoidCrowds', icon: '👥' },
+  { key: 'simplerDirections', tKey: 'pref.simplerDirections', icon: '🧭' },
+  { key: 'extraReassurance', tKey: 'pref.extraReassurance', icon: '💚' },
+  { key: 'voiceGuidance', tKey: 'pref.voiceGuidance', icon: '🔊' },
+  { key: 'conciseMode', tKey: 'pref.conciseMode', icon: '📝' },
+  { key: 'avoidNoise', tKey: 'pref.avoidNoise', icon: '🔇' },
 ];
 
 const FONT_SIZES: AccessibilitySettings['fontSize'][] = ['small', 'medium', 'large', 'xl'];
@@ -19,7 +22,7 @@ const FONT_SIZE_LABELS = { small: 'S', medium: 'M', large: 'L', xl: 'XL' };
 
 const SettingsTab = () => {
   const navigate = useNavigate();
-  const { avatar, setAvatar, preferences, setPreferences, disabilityProfiles, setDisabilityProfiles, accessibility, setAccessibility } = useApp();
+  const { avatar, setAvatar, preferences, setPreferences, disabilityProfiles, setDisabilityProfiles, accessibility, setAccessibility, language, setLanguage, resetDemo } = useApp();
 
   const toggleProfile = (id: DisabilityProfile) => {
     const next = disabilityProfiles.includes(id)
@@ -34,12 +37,41 @@ const SettingsTab = () => {
 
   const fontSizeIndex = FONT_SIZES.indexOf(accessibility.fontSize);
 
+  const handleReset = () => {
+    if (window.confirm(t('settings.resetConfirm', language))) {
+      resetDemo();
+    }
+  };
+
   return (
     <div className="px-6 py-6 pb-28 animate-fade-in-up">
-      <h2 className="text-2xl font-bold mb-6 text-foreground">Settings</h2>
+      <h2 className="text-2xl font-bold mb-6 text-foreground">{t('settings.title', language)}</h2>
+
+      {/* Language Toggle */}
+      <h3 className="font-semibold text-foreground mb-3">{t('settings.language', language)}</h3>
+      <div className="flex gap-2 mb-8">
+        <button
+          onClick={() => setLanguage('en')}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-2xl p-3.5 border-2 transition-all ${
+            language === 'en' ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-muted'
+          }`}
+        >
+          <span className="text-xl">🇬🇧</span>
+          <span className="text-sm font-medium">English</span>
+        </button>
+        <button
+          onClick={() => setLanguage('da')}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-2xl p-3.5 border-2 transition-all ${
+            language === 'da' ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-muted'
+          }`}
+        >
+          <span className="text-xl">🇩🇰</span>
+          <span className="text-sm font-medium">Dansk</span>
+        </button>
+      </div>
 
       {/* Avatar */}
-      <h3 className="font-semibold text-foreground mb-3">Your companion</h3>
+      <h3 className="font-semibold text-foreground mb-3">{t('settings.companion', language)}</h3>
       <div className="grid grid-cols-6 gap-2 mb-8">
         {AVATARS.map(a => (
           <button
@@ -56,7 +88,7 @@ const SettingsTab = () => {
       </div>
 
       {/* Disability Profiles */}
-      <h3 className="font-semibold text-foreground mb-3">Your profile</h3>
+      <h3 className="font-semibold text-foreground mb-3">{t('settings.profile', language)}</h3>
       <div className="space-y-2 mb-8">
         {DISABILITY_OPTIONS.map(opt => {
           const selected = disabilityProfiles.includes(opt.id);
@@ -85,13 +117,13 @@ const SettingsTab = () => {
       </div>
 
       {/* Preferences */}
-      <h3 className="font-semibold text-foreground mb-3">Preferences</h3>
+      <h3 className="font-semibold text-foreground mb-3">{t('settings.preferences', language)}</h3>
       <div className="space-y-2 mb-8">
-        {PREFS.map(p => (
+        {PREFS_KEYS.map(p => (
           <div key={p.key} className="flex items-center justify-between rounded-2xl bg-card p-3.5 border">
             <div className="flex items-center gap-2.5">
               <span className="text-lg" aria-hidden="true">{p.icon}</span>
-              <span className="text-sm font-medium">{p.label}</span>
+              <span className="text-sm font-medium">{t(p.tKey as any, language)}</span>
             </div>
             <Switch
               checked={preferences[p.key]}
@@ -102,13 +134,13 @@ const SettingsTab = () => {
       </div>
 
       {/* Digital Accessibility */}
-      <h3 className="font-semibold text-foreground mb-3">Digital Accessibility</h3>
+      <h3 className="font-semibold text-foreground mb-3">{t('settings.a11y', language)}</h3>
       <div className="space-y-2 mb-8">
         {/* Font Size */}
         <div className="rounded-2xl bg-card p-4 border">
           <div className="flex items-center gap-2.5 mb-3">
             <Type className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Font size</span>
+            <span className="text-sm font-medium">{t('settings.fontSize', language)}</span>
             <span className="ml-auto text-sm font-bold text-primary">{FONT_SIZE_LABELS[accessibility.fontSize]}</span>
           </div>
           <div className="flex items-center gap-3">
@@ -129,7 +161,7 @@ const SettingsTab = () => {
         <div className="flex items-center justify-between rounded-2xl bg-card p-3.5 border">
           <div className="flex items-center gap-2.5">
             {accessibility.darkMode ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
-            <span className="text-sm font-medium">{accessibility.darkMode ? 'Dark mode' : 'Light mode'}</span>
+            <span className="text-sm font-medium">{accessibility.darkMode ? t('settings.darkMode', language) : t('settings.lightMode', language)}</span>
           </div>
           <Switch checked={accessibility.darkMode} onCheckedChange={v => updateA11y('darkMode', v)} />
         </div>
@@ -138,7 +170,7 @@ const SettingsTab = () => {
         <div className="flex items-center justify-between rounded-2xl bg-card p-3.5 border">
           <div className="flex items-center gap-2.5">
             <Eye className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">High contrast</span>
+            <span className="text-sm font-medium">{t('settings.highContrast', language)}</span>
           </div>
           <Switch checked={accessibility.highContrast} onCheckedChange={v => updateA11y('highContrast', v)} />
         </div>
@@ -147,7 +179,7 @@ const SettingsTab = () => {
         <div className="flex items-center justify-between rounded-2xl bg-card p-3.5 border">
           <div className="flex items-center gap-2.5">
             <span className="text-lg" aria-hidden="true">📖</span>
-            <span className="text-sm font-medium">Dyslexia-friendly font</span>
+            <span className="text-sm font-medium">{t('settings.dyslexiaFont', language)}</span>
           </div>
           <Switch checked={accessibility.dyslexiaFont} onCheckedChange={v => updateA11y('dyslexiaFont', v)} />
         </div>
@@ -156,7 +188,7 @@ const SettingsTab = () => {
         <div className="flex items-center justify-between rounded-2xl bg-card p-3.5 border">
           <div className="flex items-center gap-2.5">
             <Volume2 className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Read aloud</span>
+            <span className="text-sm font-medium">{t('settings.readAloud', language)}</span>
           </div>
           <Switch checked={accessibility.readAloud} onCheckedChange={v => updateA11y('readAloud', v)} />
         </div>
@@ -165,7 +197,7 @@ const SettingsTab = () => {
         <div className="flex items-center justify-between rounded-2xl bg-card p-3.5 border">
           <div className="flex items-center gap-2.5">
             <Minimize2 className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Reduce motion</span>
+            <span className="text-sm font-medium">{t('settings.reduceMotion', language)}</span>
           </div>
           <Switch checked={accessibility.reduceMotion} onCheckedChange={v => updateA11y('reduceMotion', v)} />
         </div>
@@ -174,27 +206,48 @@ const SettingsTab = () => {
         <div className="flex items-center justify-between rounded-2xl bg-card p-3.5 border">
           <div className="flex items-center gap-2.5">
             <Pointer className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Large tap targets</span>
+            <span className="text-sm font-medium">{t('settings.largeTap', language)}</span>
           </div>
           <Switch checked={accessibility.largeTapTargets} onCheckedChange={v => updateA11y('largeTapTargets', v)} />
         </div>
       </div>
 
       {/* Quick Links */}
-      <h3 className="font-semibold text-foreground mb-3">Quick links</h3>
-      <div className="space-y-2">
+      <h3 className="font-semibold text-foreground mb-3">{t('settings.links', language)}</h3>
+      <div className="space-y-2 mb-8">
         <Button variant="outline" className="w-full justify-start rounded-2xl py-6" onClick={() => navigate('/support-card')}>
-          <HelpCircle className="mr-3 h-4 w-4" /> Support Card
+          <HelpCircle className="mr-3 h-4 w-4" /> {t('settings.supportCard', language)}
         </Button>
         <Button variant="outline" className="w-full justify-start rounded-2xl py-6" onClick={() => navigate('/quiet-place')}>
-          <MapPin className="mr-3 h-4 w-4" /> Quiet Places
+          <MapPin className="mr-3 h-4 w-4" /> {t('settings.quietPlaces', language)}
         </Button>
         <Button variant="outline" className="w-full justify-start rounded-2xl py-6" onClick={() => navigate('/fallback-guide')}>
-          <FileText className="mr-3 h-4 w-4" /> Fallback Guide
+          <FileText className="mr-3 h-4 w-4" /> {t('settings.fallbackGuide', language)}
         </Button>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground mt-8">CalmPath v1.0 — Hackathon Demo</p>
+      {/* Share with others */}
+      <h3 className="font-semibold text-foreground mb-3">{t('settings.share', language)}</h3>
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-card p-5 border mb-8">
+        <Share2 className="h-5 w-5 text-primary" />
+        <img
+          src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(DEMO_URL)}&bgcolor=ffffff&color=0891b2`}
+          alt="Scan to open CalmPath"
+          className="h-24 w-24 rounded-lg"
+        />
+        <p className="text-xs text-muted-foreground">{DEMO_URL.replace('https://', '')}</p>
+      </div>
+
+      {/* Reset Demo */}
+      <Button
+        variant="outline"
+        className="w-full rounded-2xl py-6 border-destructive text-destructive hover:bg-destructive/5"
+        onClick={handleReset}
+      >
+        <RotateCcw className="mr-3 h-4 w-4" /> {t('settings.reset', language)}
+      </Button>
+
+      <p className="text-center text-xs text-muted-foreground mt-8">{t('settings.version', language)}</p>
     </div>
   );
 };

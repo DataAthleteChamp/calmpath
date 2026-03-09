@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { Language, t } from '@/lib/i18n';
 
 export type AvatarId = 'fox' | 'owl' | 'panda' | 'bunny' | 'cat' | 'turtle';
 export type DisabilityProfile = 'adhd' | 'autism' | 'dyslexia' | 'anxiety' | 'lowVision';
@@ -64,6 +65,16 @@ export interface Checkpoint {
   status: 'locked' | 'active' | 'completed';
 }
 
+export interface FlightInfo {
+  airline: string;
+  flightNumber: string;
+  destination: string;
+  boardingTime: number; // timestamp
+  departureTime: number; // timestamp
+  gate: string;
+  terminal: string;
+}
+
 const defaultPreferences: Preferences = {
   avoidCrowds: true,
   simplerDirections: true,
@@ -88,9 +99,22 @@ const initialCheckpoints: Checkpoint[] = [
   { id: 'checkin', name: 'Check-in', emoji: '🎫', description: 'Check-in counter B', status: 'locked' },
   { id: 'bathroom', name: 'Bathroom', emoji: '🚻', description: 'Near Gate A area', status: 'locked' },
   { id: 'security', name: 'Security', emoji: '🛡️', description: 'Security checkpoint', status: 'locked' },
-  { id: 'snack', name: 'Snack', emoji: '☕', description: 'Café after security', status: 'locked' },
+  { id: 'snack', name: 'Snack', emoji: '☕', description: 'Cafe after security', status: 'locked' },
   { id: 'gate', name: 'Gate A12', emoji: '✈️', description: 'Gate A12 — Boarding', status: 'locked' },
 ];
+
+function createFlightInfo(): FlightInfo {
+  const now = Date.now();
+  return {
+    airline: 'SAS',
+    flightNumber: 'SK1234',
+    destination: 'London Heathrow',
+    boardingTime: now + 55 * 60 * 1000,
+    departureTime: now + 85 * 60 * 1000,
+    gate: 'A12',
+    terminal: '3',
+  };
+}
 
 /** Auto-enable preferences based on selected disability profiles */
 export function getPreferencesForProfiles(profiles: DisabilityProfile[]): Partial<Preferences> {
@@ -148,6 +172,12 @@ interface AppState {
   setMood: (m: number | null) => void;
   unlockedBadges: string[];
   unlockBadge: (id: string) => void;
+  // New: flight info, language, reset
+  flightInfo: FlightInfo;
+  boardingMinutes: number;
+  language: Language;
+  setLanguage: (l: Language) => void;
+  resetDemo: () => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -177,6 +207,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [activeTab, setActiveTab] = useState('relax');
   const [mood, setMood] = useState<number | null>((saved.mood as number) ?? null);
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>((saved.unlockedBadges as string[]) ?? []);
+  const [language, setLanguage] = useState<Language>((saved.language as Language) ?? 'en');
+
+  // Flight info — create once with boarding = now+55min, persist the timestamp
+  const [flightInfo, setFlightInfo] = useState<FlightInfo>(() => {
+    if (saved.flightInfo) {
+      const fi = saved.flightInfo as FlightInfo;
+      if (fi.boardingTime && fi.departureTime) return fi;
+    }
+    return createFlightInfo();
+  });
+
+  // Boarding countdown — recalculated from flightInfo.boardingTime
+  const [boardingMinutes, setBoardingMinutes] = useState(() => {
+    return Math.max(0, Math.round((flightInfo.boardingTime - Date.now()) / 60000));
+  });
+
+  // Update boarding countdown every 30s
+  useEffect(() => {
+    const update = () => {
+      setBoardingMinutes(Math.max(0, Math.round((flightInfo.boardingTime - Date.now()) / 60000)));
+    };
+    update();
+    const interval = setInterval(update, 30000);
+    return () => clearInterval(interval);
+  }, [flightInfo.boardingTime]);
+
+  // Update gate in flight info when gate changes
+  useEffect(() => {
+    if (gateChanged) {
+      setFlightInfo(prev => ({ ...prev, gate: 'A18' }));
+    }
+  }, [gateChanged]);
 
   // Persist state to localStorage
   useEffect(() => {
@@ -184,9 +246,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       avatar, disabilityProfiles, preferences, accessibility,
       setupComplete, xp, checkpoints, currentCheckpointIndex,
       gateChanged, journeyStarted, unlockedBadges, mood,
+      language, flightInfo,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [avatar, disabilityProfiles, preferences, accessibility, setupComplete, xp, checkpoints, currentCheckpointIndex, gateChanged, journeyStarted, unlockedBadges, mood]);
+  }, [avatar, disabilityProfiles, preferences, accessibility, setupComplete, xp, checkpoints, currentCheckpointIndex, gateChanged, journeyStarted, unlockedBadges, mood, language, flightInfo]);
 
   // Apply accessibility classes to document
   useEffect(() => {
@@ -270,6 +333,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resetDemo = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.href = '/';
+  };
+
   return (
     <AppContext.Provider value={{
       avatar, setAvatar,
@@ -287,6 +355,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       activeTab, setActiveTab,
       mood, setMood,
       unlockedBadges, unlockBadge,
+      flightInfo, boardingMinutes,
+      language, setLanguage,
+      resetDemo,
     }}>
       {children}
     </AppContext.Provider>

@@ -3,25 +3,32 @@ import { useApp } from '@/context/AppContext';
 import { useReadAloud } from '@/hooks/useReadAloud';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Volume2, Camera, MapPin, HelpCircle, Check, Eye, ZoomIn, ZoomOut, Locate } from 'lucide-react';
+import { Volume2, Camera, MapPin, HelpCircle, Check, Eye, ZoomIn, ZoomOut, Locate, Clock } from 'lucide-react';
 import CphAirportMap from '@/components/CphAirportMap';
 import { useMapGestures } from '@/components/map/useMapGestures';
 import { WALK_TIMES } from '@/components/map/mapData';
+import { t } from '@/lib/i18n';
 
 const VISUAL_HINTS: Record<string, string> = {
   entrance: '🔍 Look for the large glass doors with "Terminal 3" sign above',
   checkin: '🔍 Look for the blue Check-in counters on your right',
   bathroom: '🔍 Look for the WC sign on the left wall, past the info desk',
   security: '🔍 Follow the overhead signs to the security lanes ahead',
-  snack: '🔍 The café is right after security — look for the Starbucks logo',
+  snack: '🔍 The cafe is right after security — look for the Starbucks logo',
   gate: '🔍 Follow signs along Pier A — your gate is on the left side',
 };
 
 const CONFETTI_EMOJIS = ['🎉', '⭐', '✨', '🎊', '🏆', '💫', '🎈', '🌟'];
 
+function boardingCountdownColor(min: number) {
+  if (min > 30) return 'text-green-700 bg-green-50 dark:bg-green-900/40 dark:text-green-300';
+  if (min > 15) return 'text-amber-700 bg-amber-50 dark:bg-amber-900/40 dark:text-amber-300';
+  return 'text-red-700 bg-red-50 dark:bg-red-900/40 dark:text-red-300';
+}
+
 const MapTab = () => {
   const navigate = useNavigate();
-  const { checkpoints, currentCheckpointIndex, completeCheckpoint, journeyStarted, setJourneyStarted, accessibility } = useApp();
+  const { checkpoints, currentCheckpointIndex, completeCheckpoint, journeyStarted, setJourneyStarted, accessibility, boardingMinutes, language } = useApp();
   const { viewBox, handlers, zoomIn, zoomOut, recenter, focusOnPoint } = useMapGestures();
   const { speak } = useReadAloud();
   const { reduceMotion } = accessibility;
@@ -72,8 +79,8 @@ const MapTab = () => {
         <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 mb-6">
           <MapPin className="h-10 w-10 text-primary" />
         </div>
-        <h2 className="text-xl font-bold mb-2 text-foreground">Ready to navigate?</h2>
-        <p className="text-muted-foreground mb-6">Go to the Trips tab to start your journey</p>
+        <h2 className="text-xl font-bold mb-2 text-foreground">{t('map.ready', language)}</h2>
+        <p className="text-muted-foreground mb-6">{t('map.readyHint', language)}</p>
       </div>
     );
   }
@@ -100,23 +107,29 @@ const MapTab = () => {
           </div>
         )}
         <span className="text-7xl mb-6">✈️</span>
-        <h2 className="text-2xl font-bold mb-2 text-foreground">Destination reached!</h2>
-        <p className="text-muted-foreground">You're at your gate. Have a calm flight!</p>
+        <h2 className="text-2xl font-bold mb-2 text-foreground">{t('map.complete.title', language)}</h2>
+        <p className="text-muted-foreground">{t('map.complete.subtitle', language)}</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full animate-fade-in-up">
-      {/* Top: Current Objective */}
+      {/* Top: Current Objective + Boarding Countdown */}
       <div className="px-5 py-3 bg-card border-b">
-        <p className="text-xs font-medium text-primary uppercase tracking-wider mb-0.5">Next stop</p>
+        <div className="flex items-center justify-between mb-0.5">
+          <p className="text-xs font-medium text-primary uppercase tracking-wider">{t('map.nextStop', language)}</p>
+          <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${boardingCountdownColor(boardingMinutes)}`}>
+            <Clock className="h-2.5 w-2.5" />
+            {t('map.boarding', language)} {boardingMinutes} {t('header.min', language)}
+          </div>
+        </div>
         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
           <span className="text-2xl">{currentCp?.emoji}</span>
           {currentCp?.name}
           {walkTime > 0 && (
             <span className="text-xs font-normal text-muted-foreground ml-1">
-              ~{walkTime} min walk
+              ~{walkTime} {t('map.walk', language)}
             </span>
           )}
         </h2>
@@ -199,25 +212,25 @@ const MapTab = () => {
             className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-muted p-2.5 text-muted-foreground hover:bg-muted/80 transition-colors"
           >
             <Volume2 className="h-4 w-4" />
-            <span className="text-[10px] font-medium">Voice</span>
+            <span className="text-[10px] font-medium">{t('map.voice', language)}</span>
           </button>
           <button className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-muted p-2.5 text-muted-foreground hover:bg-muted/80 transition-colors">
             <Camera className="h-4 w-4" />
-            <span className="text-[10px] font-medium">Camera</span>
+            <span className="text-[10px] font-medium">{t('map.camera', language)}</span>
           </button>
           <button
             onClick={() => navigate('/quiet-place')}
             className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-muted p-2.5 text-muted-foreground hover:bg-muted/80 transition-colors"
           >
             <MapPin className="h-4 w-4" />
-            <span className="text-[10px] font-medium">Quiet</span>
+            <span className="text-[10px] font-medium">{t('map.quiet', language)}</span>
           </button>
           <button
             onClick={() => navigate('/support-card')}
             className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-muted p-2.5 text-muted-foreground hover:bg-muted/80 transition-colors"
           >
             <HelpCircle className="h-4 w-4" />
-            <span className="text-[10px] font-medium">Support</span>
+            <span className="text-[10px] font-medium">{t('map.support', language)}</span>
           </button>
         </div>
 
@@ -227,7 +240,7 @@ const MapTab = () => {
           onClick={completeCheckpoint}
         >
           <Check className="mr-2 h-4 w-4" />
-          Mark "{currentCp?.name}" complete
+          {t('map.mark', language)} "{currentCp?.name}" {t('map.markComplete', language)}
         </Button>
       </div>
     </div>

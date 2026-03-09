@@ -194,3 +194,37 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
+
+/* Print styles for Support Card */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  #support-card {
+    background: white !important;
+    color: black !important;
+    min-height: auto !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:bg-white {
+    background: white !important;
+  }
+  .print\:text-black {
+    color: black !important;
+  }
+  .print\:text-gray-500 {
+    color: #6b7280 !important;
+  }
+  .print\:text-gray-300 {
+    color: #d1d5db !important;
+  }
+  .print\:bg-gray-300 {
+    background-color: #d1d5db !important;
+  }
+  .print\:p-10 {
+    padding: 2.5rem !important;
+  }
+}
