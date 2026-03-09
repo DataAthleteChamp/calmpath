@@ -114,7 +114,7 @@ const MapTab = () => {
   }
 
   return (
-    <div className="flex flex-col h-full animate-fade-in-up">
+    <div className="flex flex-col h-full overflow-hidden animate-fade-in-up">
       {/* Top: Current Objective + Boarding Countdown */}
       <div className="px-5 py-3 bg-card border-b">
         <div className="flex items-center justify-between mb-0.5">
