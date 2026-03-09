@@ -158,7 +158,7 @@ const MapTab = () => {
       </div>
 
       {/* Map — large with floating controls */}
-      <div className="flex-1 relative min-h-[55vh]">
+      <div className="flex-1 relative overflow-hidden">
         <CphAirportMap
           viewBox={viewBox}
           gestureHandlers={handlers}
