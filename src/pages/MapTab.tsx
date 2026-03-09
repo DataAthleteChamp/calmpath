@@ -142,7 +142,7 @@ const MapTab = () => {
       </div>
 
       {/* Progress dots */}
-      <div className="flex items-center justify-center gap-2 py-2.5 bg-card/50">
+      <div className="flex items-center justify-center gap-2 py-1.5 bg-card/50">
         {checkpoints.map((cp) => (
           <div
             key={cp.id}
