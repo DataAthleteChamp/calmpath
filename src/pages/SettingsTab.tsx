@@ -226,17 +226,6 @@ const SettingsTab = () => {
         </Button>
       </div>
 
-      {/* Share with others */}
-      <h3 className="font-semibold text-foreground mb-3">{t('settings.share', language)}</h3>
-      <div className="flex flex-col items-center gap-3 rounded-2xl bg-card p-5 border mb-8">
-        <Share2 className="h-5 w-5 text-primary" />
-        <img
-          src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(DEMO_URL)}&bgcolor=ffffff&color=0891b2`}
-          alt="Scan to open CalmPath"
-          className="h-24 w-24 rounded-lg"
-        />
-        <p className="text-xs text-muted-foreground">{DEMO_URL.replace('https://', '')}</p>
-      </div>
 
       {/* Reset Demo */}
       <Button
