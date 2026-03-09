@@ -32,7 +32,7 @@ const MainApp = () => {
         <span>{t('header.boarding', language)} {boardingMinutes} {t('header.min', language)}</span>
       </div>
 
-      <div className="flex-1 overflow-auto pb-24">
+      <div className={`flex-1 ${activeTab === 'map' ? 'overflow-hidden pb-16' : 'overflow-auto pb-24'}`}>
         {activeTab === 'relax' && <RelaxTab />}
         {activeTab === 'trips' && <TripsTab />}
         {activeTab === 'map' && <MapTab />}
