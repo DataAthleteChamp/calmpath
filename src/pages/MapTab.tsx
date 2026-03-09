@@ -236,7 +236,7 @@ const MapTab = () => {
 
         <Button
           size="lg"
-          className="w-full rounded-2xl py-6 text-base font-semibold"
+          className="w-full rounded-2xl py-4 text-base font-semibold"
           onClick={completeCheckpoint}
         >
           <Check className="mr-2 h-4 w-4" />
