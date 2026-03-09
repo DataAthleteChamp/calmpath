@@ -36,16 +36,6 @@ const SplashScreen = () => {
           </Button>
         </div>
 
-        {/* QR Code for audience */}
-        <div className="flex flex-col items-center gap-2 pt-4 opacity-80">
-          <p className="text-xs font-medium text-muted-foreground">Try it on your phone</p>
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(DEMO_URL)}&bgcolor=f8fafc&color=0891b2`}
-            alt="Scan to open CalmPath"
-            className="h-28 w-28 rounded-xl border bg-white p-1"
-          />
-          <p className="text-[10px] text-muted-foreground">{DEMO_URL.replace('https://', '')}</p>
-        </div>
 
         <p className="text-xs text-muted-foreground pt-1">✈️ CPH Kastrup</p>
       </div>
