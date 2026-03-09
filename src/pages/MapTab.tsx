@@ -205,7 +205,7 @@ const MapTab = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="px-5 py-3 bg-card border-t space-y-2.5">
+      <div className="px-5 py-2 bg-card border-t space-y-2">
         <div className="flex gap-2">
           <button
             onClick={handleVoice}
