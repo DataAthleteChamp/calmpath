@@ -114,7 +114,7 @@ const MapTab = () => {
   }
 
   return (
-    <div className="flex flex-col h-full animate-fade-in-up">
+    <div className="flex flex-col h-full overflow-hidden animate-fade-in-up">
       {/* Top: Current Objective + Boarding Countdown */}
       <div className="px-5 py-3 bg-card border-b">
         <div className="flex items-center justify-between mb-0.5">
@@ -142,7 +142,7 @@ const MapTab = () => {
       </div>
 
       {/* Progress dots */}
-      <div className="flex items-center justify-center gap-2 py-2.5 bg-card/50">
+      <div className="flex items-center justify-center gap-2 py-1.5 bg-card/50">
         {checkpoints.map((cp) => (
           <div
             key={cp.id}
@@ -158,7 +158,7 @@ const MapTab = () => {
       </div>
 
       {/* Map — large with floating controls */}
-      <div className="flex-1 relative min-h-[55vh]">
+      <div className="flex-1 relative overflow-hidden">
         <CphAirportMap
           viewBox={viewBox}
           gestureHandlers={handlers}
@@ -205,7 +205,7 @@ const MapTab = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="px-5 py-3 bg-card border-t space-y-2.5">
+      <div className="px-5 py-2 bg-card border-t space-y-2">
         <div className="flex gap-2">
           <button
             onClick={handleVoice}
@@ -236,7 +236,7 @@ const MapTab = () => {
 
         <Button
           size="lg"
-          className="w-full rounded-2xl py-6 text-base font-semibold"
+          className="w-full rounded-2xl py-4 text-base font-semibold"
           onClick={completeCheckpoint}
         >
           <Check className="mr-2 h-4 w-4" />
